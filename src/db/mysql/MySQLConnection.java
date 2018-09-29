@@ -68,11 +68,25 @@ public class MySQLConnection implements DBConnection{
 		System.out.println("update budget done");
 	}
 
-	@Override
+	@Override 
 	public void updateBid(int ad_id, double bid) {
-		// TODO Auto-generated method stub
+		if (conn == null) {
+			System.err.println("DB connection failed!");
+		}
 		
+		try {	
+			String sql = "UPDATE ad SET bid=(?) WHERE ad_id=(?)";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			stmt.setDouble(1, bid);
+			stmt.setInt(2, ad_id);
+			System.out.println(stmt.toString());
+			stmt.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		System.out.println("update bid done");
 	}
+
 
 	@Override
 	public long createAdvertiser(String advertiser_name, double budget) {
