@@ -100,8 +100,40 @@ public class MySQLConnection implements DBConnection{
 
 	@Override
 	public long createAd(double bid, String image_url, int advertiser_id, double ad_score) {
-		// TODO Auto-generated method stub
-		return 0;
+		if (conn == null) {
+			System.err.println("DB connection failed!");
+		}
+		
+		//INSERT INTO ad (bid, image_url, advertiser_id, ad_score) VALUES ('2',"http://image.com", 3, 0.3);
+		try {	
+			String sql = "INSERT INTO ad (bid, image_url, advertiser_id, ad_score) VALUES ((?), (?), (?), (?))";
+			PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			stmt.setDouble(1, bid);
+			stmt.setString(2, image_url);
+			stmt.setInt(3, advertiser_id);
+			stmt.setDouble(4, ad_score);
+			System.out.println(stmt.toString());
+			
+	        int affectedRows = stmt.executeUpdate();
+	        
+	        if (affectedRows == 0) {
+	            throw new SQLException("Creating ad failed, no rows affected.");
+	        }
+
+	        try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+	            if (generatedKeys.next()) {
+	            	return generatedKeys.getLong(1);
+	            }
+	            else {
+	                throw new SQLException("Creating ad failed, no ID obtained.");
+	            }
+	        }
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		System.out.println("insert ad done");
+		return -1;
 	}
+
 
 }
