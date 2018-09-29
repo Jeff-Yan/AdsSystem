@@ -6,10 +6,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 import db.DBConnection;
 import entity.AdItem;
+import entity.AdItem.AdItemBuilder;
 
 public class MySQLConnection implements DBConnection{
 
@@ -40,13 +42,56 @@ public class MySQLConnection implements DBConnection{
 	@Override
 	public List<AdItem> searchAdItems() {
 		// TODO Auto-generated method stub
-		return null;
+		if (conn == null) {
+			System.err.println("DB connection failed!");
+			return new ArrayList<>();
+		}
+		
+		List<AdItem> adItems = new ArrayList<>();
+		try {
+			// Get all ads candidates
+			String sql = "SELECT * FROM ad LEFT JOIN advertiser on ad.advertiser_id = advertiser.advertiser_id WHERE ad.bid > 0 AND advertiser.budget > 0";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			
+			ResultSet rs = stmt.executeQuery();
+			AdItemBuilder builder = new AdItemBuilder();
+			
+			while (rs.next()) {
+				builder.setAd_id(rs.getInt("ad_id"));
+				builder.setBid(rs.getFloat("bid"));
+				builder.setImage_url(rs.getString("image_url"));
+				builder.setAdvertiser_id(rs.getInt("advertiser_id"));
+				builder.setAd_score(rs.getFloat("ad_score"));
+				adItems.add(builder.build());
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return adItems;
 	}
 
 	@Override
 	public float getBudget(int advertiser_id) {
 		// TODO Auto-generated method stub
-		return 0;
+		if (conn == null) {
+			System.err.println("DB connection failed!");
+		}
+		
+		float curBudget = -1;
+
+		try {	
+			String sql = "SELECT * FROM advertiser WHERE advertiser_id = (?)";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			stmt.setDouble(1, advertiser_id);			
+			ResultSet rs = stmt.executeQuery();
+			while(rs.next()) {
+				curBudget = rs.getFloat("budget");
+			}
+			System.out.println("curBudget" + curBudget);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return curBudget;
 	}
 
 	@Override
